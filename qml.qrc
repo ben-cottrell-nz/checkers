@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>game_state.js</file>
     </qresource>
 </RCC>
