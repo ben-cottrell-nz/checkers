@@ -17,59 +17,61 @@ Window {
             id: image
             property int cx: 0
             property int cy: 0
-            x: col.x + cx * window.cellSize
-            y: col.y + cy * window.cellSize
-            //            width: 32
-            //            height: 32
+            x: board.x + cx * window.cellSize
+            y: board.y + cy * window.cellSize
             property int pieceType: 0
-            //            Drag.active: mouseArea.drag.active
-            //            Drag.dragType: Drag.Automatic
-            //            MouseArea {
-            //                id: mouseArea
-            //                anchors.fill: parent
-            //                property point lastPoint: Qt.point(0,0)
-            //                property bool isDragging: false
-            //                onPressed: {
-            //                    isDragging = true
-            //                }
-            //                onReleased: {
-            //                    isDragging = false
-            //                    lastPoint = Qt.point(image.x + mouseX, image.y + mouseY)
-            //                }
-            //                onPositionChanged: {
-            //                    if (isDragging) {
-            //                        parent.x = image.x + (mouseX - lastPoint.x)
-            //                        parent.y = image.y + (mouseY - lastPoint.y)
-            //                    }
-            //                }
-
-            //            }
             MouseArea {
                 id: ma
                 anchors.fill: parent
                 enabled: GameState.playerTurnId == 1 && (pieceType & 1) == 1
                 drag.target: parent
                 drag.axis: Drag.XAxis | Drag.YAxis
+                onReleased: {
+                    if (GameState.lastHighlightedIndex != -1
+                            && GameState.lastHighlightedY != -1) {
+                        board.children[GameState.lastHighlightedY].children[GameState.lastHighlightedX].children[0].visible = false
+                    }
+                }
+
                 onPositionChanged: {
                     if (drag.active) {
                         //derive cx, cy
                         var mousePos = NativeFunctions.globalMousePos()
-                        console.log(`${mousePos.x-window.x},${mousePos.y-window.y}`)
-                        //console.log("dragging")
+                        var cellX = Math.floor(
+                                    (mousePos.x - window.x - board.x) / window.cellSize)
+                        var cellY = Math.floor(
+                                    (mousePos.y - window.y - board.y) / window.cellSize)
+                        if ((cellX > -1 && cellX < 8) && (cellY > -1
+                                                          && cellY < 8)) {
+                            GameState.tileState[cellX + (cellY * 8)] = 3
+                            //update the board row column child item
+                            var item = board.children[cellY].children[cellX]
+                            if (item instanceof Rectangle) {
+                                //remove the highlight from the last highlighted cell
+                                if (GameState.lastHighlightedIndex != -1
+                                        && GameState.lastHighlightedY != -1) {
+                                    board.children[GameState.lastHighlightedY].children[GameState.lastHighlightedX].children[0].visible = false
+                                }
+                                item.children[0].visible = true
+                                console.log(`${item.children[1].id}`)
+                                GameState.lastHighlightedX = cellX
+                                GameState.lastHighlightedY = cellY
+                            }
+                        }
                     }
                 }
             }
             sourceClipRect: {
-                if ((pieceType & 1) == 1) {
+                if (GameState.cf(pieceType, GameState.TS_P1)) {
                     //king flag set
-                    if ((pieceType & 4) == 4) {
+                    if (GameState.cf(pieceType, GameState.TS_PK)) {
                         return Qt.rect(0, 326, 338, 338)
                     } else {
                         return Qt.rect(0, 0, 338, 338)
                     }
-                } else if ((pieceType & 2) == 2) {
+                } else if (GameState.cf(pieceType, GameState.TS_P2)) {
                     //king flag set
-                    if ((pieceType & 4) == 4) {
+                    if (GameState.cf(pieceType, GameState.TS_PK)) {
                         return Qt.rect(0, 326, 338, 338)
                     } else {
                         return Qt.rect(534, 0, 338, 338)
@@ -79,77 +81,44 @@ Window {
             source: "qrc:/pieces.png"
         }
     }
-    //    Rectangle {
-    //        color: "blue"
-    //        width: col.x
-    //        height: window.height
-    //    }
-
-    //    Rectangle {
-    //        color: "blue"
-    //        width: 512
-    //        height: 512
-    //        MouseArea {
-    //            id: mouseArea
-    //            anchors.fill: parent
-    //            property point lastPoint: Qt.point(0,0)
-    //            property bool isDragging: false
-    //            onPressed: {
-    //                isDragging = true
-    //            }
-    //            onReleased: {
-    //                isDragging = false
-    //                lastPoint = Qt.point(mouseX, mouseY)
-    //            }
-
-    //            onMouseXChanged: {
-    //                if (isDragging) {
-    //                parent.x = mouseX - lastPoint.x
-    //                }
-    //            }
-    //            onMouseYChanged: {
-    //                if (isDragging) {
-    //                parent.y = mouseY - lastPoint.y
-    //                }
-    //            }
-    //        }
-    //    }
     Column {
-        id: col
+        id: board
         anchors.centerIn: parent
         Repeater {
+            //rows
             model: 8
             delegate: Row {
                 id: row
-                property bool populateP2: index < 2
-                property bool populateP1: index > 5 && index < 8
                 property bool sy: index % 2 == 0
                 property int rowIndex: index
                 Repeater {
+                    //columns
                     model: 8
                     Rectangle {
+                        Rectangle {
+                            id: highlightRect
+                            color: "yellow"
+                            visible: false
+                            anchors.fill: parent
+                        }
+
                         id: cellRect
                         Component.onCompleted: {
-                            var p2OffsetX = 543
                             //top two rows
-                            if (populateP2) {
+                            var tileState = GameState.tileState[index + (row.rowIndex * 8)]
+                            var isPlayerPiece = false
+                            //                            console.log(`ts: ${tileState}`)
+                            if (GameState.cf(tileState, GameState.TS_P1)) {
+                                //                                    console.log("P1")
+                                isPlayerPiece = true
+                            } else if (GameState.cf(tileState,
+                                                    GameState.TS_P2)) {
+                                //                                    console.log("P2")
+                                isPlayerPiece = true
+                            }
+                            if (isPlayerPiece) {
                                 playerPiece.createObject(window, {
-                                                             "pieceType": 2,
-                                                             "width": Qt.binding(
-                                                                          () => {
-                                                                              return window.cellSize
-                                                                          }),
-                                                             "height": Qt.binding(
-                                                                           () => {
-                                                                               return window.cellSize
-                                                                           }),
-                                                             "cx": index,
-                                                             "cy": row.rowIndex
-                                                         })
-                            } else if (populateP1) {
-                                //bottom two rows
-                                playerPiece.createObject(window, {
-                                                             "pieceType": 1,
+                                                             "pieceType": tileState,
                                                              "width": Qt.binding(
                                                                           () => {
                                                                               return window.cellSize
