@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 #include "nativefunctions.h"
 #include <QQmlContext>
+#include <QQuickWindow>
 
 int main(int argc, char *argv[])
 {
@@ -10,6 +11,9 @@ int main(int argc, char *argv[])
 #endif
 
     QGuiApplication app(argc, argv);
+#ifdef Q_OS_WIN
+    QQuickWindow::setGraphicsApi(QSGRendererInterface::Software);
+#endif
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));

@@ -11,14 +11,16 @@ Window {
     title: qsTr("Draughts")
     property real cellSize: Math.min(window.width * 0.125,
                                      window.height * 0.125)
+
     Component {
         id: playerPiece
         Image {
             id: image
             property int cx: 0
             property int cy: 0
-            x: board.x + cx * window.cellSize
-            y: board.y + cy * window.cellSize
+            x: board.x + (cx * window.cellSize)
+            y: board.y + (cy * window.cellSize)
+            property int pieceIndex: -1
             property int pieceType: 0
             MouseArea {
                 id: ma
@@ -26,26 +28,43 @@ Window {
                 enabled: GameState.playerTurnId == 1 && (pieceType & 1) == 1
                 drag.target: parent
                 drag.axis: Drag.XAxis | Drag.YAxis
+                property int targetCellX: -1
+                property int targetCellY: -1
                 onReleased: {
                     if (GameState.lastHighlightedIndex != -1
                             && GameState.lastHighlightedY != -1) {
                         board.children[GameState.lastHighlightedY].children[GameState.lastHighlightedX].children[0].visible = false
+                        if (targetCellX != -1 && targetCellY != -1) {
+                            console.log(targetCellX)
+                            var piece = GameState.playerPieceQMLItems[image.pieceIndex]
+                            console.log(`cx ${targetCellX} cy ${targetCellY}`)
+                            piece.cx = targetCellX
+                            piece.cy = targetCellY
+                            //center the piece in the last highlighted cell
+                            if (GameState.lastHighlightedIndex != -1
+                                    && GameState.lastHighlightedY != -1) {
+                                var rect = board.children[GameState.lastHighlightedY].children[GameState.lastHighlightedX].children[0]
+                            }
+//                            GameState.playerPieceQMLItems[image.pieceIndex].x = board.x + image.cx * window.cellSize
+//                            GameState.playerPieceQMLItems[image.pieceIndex].y = board.y + image.cy * window.cellSize
+                            targetCellX = -1
+                            targetCellY = -1
+                        }
                     }
                 }
 
                 onPositionChanged: {
                     if (drag.active) {
-                        //derive cx, cy
                         var mousePos = NativeFunctions.globalMousePos()
-                        var cellX = Math.floor(
+                        targetCellX = Math.floor(
                                     (mousePos.x - window.x - board.x) / window.cellSize)
-                        var cellY = Math.floor(
+                        targetCellY = Math.floor(
                                     (mousePos.y - window.y - board.y) / window.cellSize)
-                        if ((cellX > -1 && cellX < 8) && (cellY > -1
-                                                          && cellY < 8)) {
-                            GameState.tileState[cellX + (cellY * 8)] = 3
+                        if ((targetCellX > -1 && targetCellX < 8) && (targetCellY > -1
+                                                          && targetCellY < 8)) {
+                            GameState.tileState[targetCellX + (targetCellY * 8)] = 3
                             //update the board row column child item
-                            var item = board.children[cellY].children[cellX]
+                            var item = board.children[targetCellY].children[targetCellX]
                             if (item instanceof Rectangle) {
                                 //remove the highlight from the last highlighted cell
                                 if (GameState.lastHighlightedIndex != -1
@@ -53,9 +72,10 @@ Window {
                                     board.children[GameState.lastHighlightedY].children[GameState.lastHighlightedX].children[0].visible = false
                                 }
                                 item.children[0].visible = true
-                                console.log(`${item.children[1].id}`)
-                                GameState.lastHighlightedX = cellX
-                                GameState.lastHighlightedY = cellY
+                                //console.log(`selected ${GameState.playerPieceQMLItems[image.pieceIndex]}, pieceIndex ${image.pieceIndex}`)
+                                //console.log(`${item.children[1].id}`)
+                                GameState.lastHighlightedX = targetCellX
+                                GameState.lastHighlightedY = targetCellY
                             }
                         }
                     }
@@ -117,19 +137,21 @@ Window {
                                 isPlayerPiece = true
                             }
                             if (isPlayerPiece) {
-                                playerPiece.createObject(window, {
-                                                             "pieceType": tileState,
-                                                             "width": Qt.binding(
-                                                                          () => {
-                                                                              return window.cellSize
-                                                                          }),
-                                                             "height": Qt.binding(
-                                                                           () => {
-                                                                               return window.cellSize
-                                                                           }),
-                                                             "cx": index,
-                                                             "cy": row.rowIndex
-                                                         })
+                                GameState.playerPieceQMLItems.push(
+                                            playerPiece.createObject(window, {
+                                                                         "pieceType": tileState,
+                                                                         "width": Qt.binding(() => {
+                                                                                                 return window.cellSize
+                                                                                             }),
+                                                                         "height": Qt.binding(
+                                                                                       () => {
+                                                                                           return window.cellSize
+                                                                                       }),
+                                                                         "cx": index,
+                                                                         "cy": row.rowIndex,
+                                                                         "pieceIndex" : GameState.playerPieceQMLItems.length
+                                                                     }))
+                                console.log(GameState.playerPieceQMLItems)
                             }
                         }
                         width: window.cellSize
