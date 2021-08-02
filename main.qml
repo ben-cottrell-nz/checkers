@@ -47,6 +47,9 @@ Window {
                             }
 //                            GameState.playerPieceQMLItems[image.pieceIndex].x = board.x + image.cx * window.cellSize
 //                            GameState.playerPieceQMLItems[image.pieceIndex].y = board.y + image.cy * window.cellSize
+                            //hack to recalculate positions
+                            board.x++
+                            board.x--
                             targetCellX = -1
                             targetCellY = -1
                         }
