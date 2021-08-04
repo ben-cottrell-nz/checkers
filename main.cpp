@@ -14,13 +14,13 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_WIN
     QQuickWindow::setGraphicsApi(QSGRendererInterface::Software);
 #endif
-
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
+        qDebug() << "loaded " << obj;
     }, Qt::QueuedConnection);
     engine.load(url);
     NativeFunctions nativeFunctions;

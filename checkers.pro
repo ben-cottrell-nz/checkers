@@ -1,6 +1,7 @@
 QT += quick
+QT -= sql quickcontrols2
 
-CONFIG += c++11
+CONFIG += c++11 release
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -12,6 +13,8 @@ SOURCES += \
 
 RESOURCES += qml.qrc \
     assets.qrc
+
+QMAKE_LFLAGS += -s
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =

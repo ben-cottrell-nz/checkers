@@ -22,15 +22,42 @@ Window {
             y: board.y + (cy * window.cellSize)
             property int pieceIndex: -1
             property int pieceType: 0
+//            MultiPointTouchArea {
+//                enabled: true
+//                maximumTouchPoints: 1
+//                touchPoints: [
+//                    TouchPoint {
+//                        id: touchPoint;
+//                        property bool pXChanged: false
+//                        property bool pYChanged: false
+//                        onXChanged: {
+//                            pXChanged = true
+//                        }
+//                        onYChanged: {
+//                            pYChanged = true
+//                        }
+//                        function movement() {
+//                            if (pXChanged && pYChanged) {
+//                                console.log(`pos: ${touchPoint.x} ${touchPoint.y}`)
+//                                pXChanged = false;
+//                                pYChanged = false;
+//                            }
+//                        }
+//                    }
+//                ]
+//            }
+
             MouseArea {
                 id: ma
                 anchors.fill: parent
                 enabled: GameState.playerTurnId == 1 && (pieceType & 1) == 1
                 drag.target: parent
                 drag.axis: Drag.XAxis | Drag.YAxis
+                acceptedButtons: Qt.AllButtons
                 property int targetCellX: -1
                 property int targetCellY: -1
                 onReleased: {
+//                    console.log("released")
                     if (GameState.lastHighlightedIndex != -1
                             && GameState.lastHighlightedY != -1) {
                         board.children[GameState.lastHighlightedY].children[GameState.lastHighlightedX].children[0].visible = false
@@ -40,25 +67,21 @@ Window {
                             console.log(`cx ${targetCellX} cy ${targetCellY}`)
                             piece.cx = targetCellX
                             piece.cy = targetCellY
-                            //center the piece in the last highlighted cell
-                            if (GameState.lastHighlightedIndex != -1
-                                    && GameState.lastHighlightedY != -1) {
-                                var rect = board.children[GameState.lastHighlightedY].children[GameState.lastHighlightedX].children[0]
-                            }
-//                            GameState.playerPieceQMLItems[image.pieceIndex].x = board.x + image.cx * window.cellSize
-//                            GameState.playerPieceQMLItems[image.pieceIndex].y = board.y + image.cy * window.cellSize
                             //hack to recalculate positions
                             board.x++
                             board.x--
+                            board.y++
+                            board.y--
                             targetCellX = -1
                             targetCellY = -1
                         }
                     }
                 }
-
                 onPositionChanged: {
+                    console.log(`pos ${NativeFunctions.globalMousePos()}`)
                     if (drag.active) {
-                        var mousePos = NativeFunctions.globalMousePos()
+                        console.log("dragging")
+                        var mousePos = mapToGlobal(mouse.x, mouse.y)
                         targetCellX = Math.floor(
                                     (mousePos.x - window.x - board.x) / window.cellSize)
                         targetCellY = Math.floor(
