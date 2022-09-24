@@ -22,30 +22,6 @@ Window {
             y: board.y + (cy * window.cellSize)
             property int pieceIndex: -1
             property int pieceType: 0
-//            MultiPointTouchArea {
-//                enabled: true
-//                maximumTouchPoints: 1
-//                touchPoints: [
-//                    TouchPoint {
-//                        id: touchPoint;
-//                        property bool pXChanged: false
-//                        property bool pYChanged: false
-//                        onXChanged: {
-//                            pXChanged = true
-//                        }
-//                        onYChanged: {
-//                            pYChanged = true
-//                        }
-//                        function movement() {
-//                            if (pXChanged && pYChanged) {
-//                                console.log(`pos: ${touchPoint.x} ${touchPoint.y}`)
-//                                pXChanged = false;
-//                                pYChanged = false;
-//                            }
-//                        }
-//                    }
-//                ]
-//            }
 
             MouseArea {
                 id: ma
@@ -57,17 +33,14 @@ Window {
                 property int targetCellX: -1
                 property int targetCellY: -1
                 onReleased: {
-//                    console.log("released")
                     if (GameState.lastHighlightedIndex != -1
                             && GameState.lastHighlightedY != -1) {
                         board.children[GameState.lastHighlightedY].children[GameState.lastHighlightedX].children[0].visible = false
                         if (targetCellX != -1 && targetCellY != -1) {
-                            console.log(targetCellX)
                             var piece = GameState.playerPieceQMLItems[image.pieceIndex]
-                            console.log(`cx ${targetCellX} cy ${targetCellY}`)
                             piece.cx = targetCellX
                             piece.cy = targetCellY
-                            //hack to recalculate positions
+                            //hack to recalculate positions for property changes
                             board.x++
                             board.x--
                             board.y++
@@ -77,10 +50,8 @@ Window {
                         }
                     }
                 }
-                onPositionChanged: {
-                    console.log(`pos ${NativeFunctions.globalMousePos()}`)
+                onPositionChanged: (mouse)=>{
                     if (drag.active) {
-                        console.log("dragging")
                         var mousePos = mapToGlobal(mouse.x, mouse.y)
                         targetCellX = Math.floor(
                                     (mousePos.x - window.x - board.x) / window.cellSize)
@@ -98,8 +69,6 @@ Window {
                                     board.children[GameState.lastHighlightedY].children[GameState.lastHighlightedX].children[0].visible = false
                                 }
                                 item.children[0].visible = true
-                                //console.log(`selected ${GameState.playerPieceQMLItems[image.pieceIndex]}, pieceIndex ${image.pieceIndex}`)
-                                //console.log(`${item.children[1].id}`)
                                 GameState.lastHighlightedX = targetCellX
                                 GameState.lastHighlightedY = targetCellY
                             }
@@ -153,13 +122,10 @@ Window {
                             //top two rows
                             var tileState = GameState.tileState[index + (row.rowIndex * 8)]
                             var isPlayerPiece = false
-                            //                            console.log(`ts: ${tileState}`)
                             if (GameState.cf(tileState, GameState.TS_P1)) {
-                                //                                    console.log("P1")
                                 isPlayerPiece = true
                             } else if (GameState.cf(tileState,
                                                     GameState.TS_P2)) {
-                                //                                    console.log("P2")
                                 isPlayerPiece = true
                             }
                             if (isPlayerPiece) {
@@ -177,7 +143,6 @@ Window {
                                                                          "cy": row.rowIndex,
                                                                          "pieceIndex" : GameState.playerPieceQMLItems.length
                                                                      }))
-                                console.log(GameState.playerPieceQMLItems)
                             }
                         }
                         width: window.cellSize
