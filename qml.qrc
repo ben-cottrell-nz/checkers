@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>game_state.js</file>
+        <file>PlayerPiece.qml</file>
+        <file>PlayingBoard.qml</file>
     </qresource>
 </RCC>

@@ -14,6 +14,11 @@ var tileState = [
     TS_P1,TS_P1,TS_P1,TS_P1,TS_P1,TS_P1,TS_P1,TS_P1,
     TS_P1,TS_P1,TS_P1,TS_P1,TS_P1,TS_P1,TS_P1,TS_P1
 ]
+/*
+This contains an array of associative properties: pieceType, cx, cy, and pieceIndex.
+pieceIndex is the index in playerPieceQMLItems. It's used in onReleased function.
+cx, cy are positions on the board.
+  */
 var playerPieceQMLItems = []
 function cf(value, flag) {
     return (value & flag) === flag
